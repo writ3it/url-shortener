@@ -12,27 +12,32 @@ namespace UrlShortener.Backend.Redirecting
     public class RedirectFunction
     {
         private readonly ILogger<RedirectFunction> _logger;
+        private readonly IRedirectingService _service;
 
-        public RedirectFunction(ILogger<RedirectFunction> logger)
+        public RedirectFunction(ILogger<RedirectFunction> logger, IRedirectingService service)
         {
             _logger = logger;
+            _service = service;
         }
 
         [Function("Redirect")]
         public IActionResult Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "redirect/{token:alpha}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "redirect/{token:regex(^[0-9A-Za-z]{{3,40}}$)}")]
                 HttpRequest req,
-            string token,
-            [TableInput("redirection","all","{token}")]
+            string token
+            /**
+            Is it possible?
+            [TableInput("redirection","all","{token}")] <--- token
             IEnumerable<Redirection> redirections
+            **/
         )
         {
-            if (!redirections.Any())
+            var redirection = _service.FindByRowKey(token);
+            if (redirection == null)
             {
                 _logger.LogInformation("Token not found. Token: " + token);
                 return new RedirectResult("https://zhp.pl", false, true);
             }
-            var redirection = redirections.First();
             _logger.LogInformation("Token found. Token: " + token);
             return new RedirectResult(redirection.URL, redirection.IsPernament, redirection.IsPreservingMethod);
         }

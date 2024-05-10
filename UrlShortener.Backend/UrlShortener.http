@@ -1,0 +1,12 @@
+POST http://localhost:7071/api/AddRedirection
+Content-Type: application/json
+
+{
+    "URL": "https://pl.wikipedia.org/wiki/Harcerstwo"
+}
+
+###
+
+GET http://localhost:7071/api/redirect/b6dhedgb47
+Content-Type: application/json
+###
